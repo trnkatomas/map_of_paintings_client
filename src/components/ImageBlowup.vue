@@ -32,6 +32,9 @@
       props: {
         img: String
       },
+      emits: {
+        change: null,
+      },
       methods: {
         showSingle() {
           //this.img = this.img || '/wiki-image/wiki/Special:FilePath/Caravaggio%20-%20Taking%20of%20Christ%20-%20Odessa.jpg'
@@ -39,9 +42,11 @@
         },
         show() {
           this.visible = true
+          this.$emit('change', true)
         },
         handleHide() {
           this.visible = false
+          this.$emit('change', false)
         }
       }
     }

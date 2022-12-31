@@ -2,8 +2,8 @@
     <div ref="map-root" class="z-0"
          style="width: 100%; height: 100%; min-width: 600px; min-height: 100px;">
     </div>
-      <figure id="popup" class="md:flex max-w-lg bg-slate-100 rounded-xl p-8 md:p-0 dark:bg-slate-800" v-show="detailVisible">
-        <ImageBlowup :img="selectedImage"></ImageBlowup>
+      <figure id="popup" @mouseenter="hoverDetail(true)" @mouseleave="hoverDetail(false)" class="md:flex max-w-lg bg-slate-100 rounded-xl p-8 md:p-0 dark:bg-slate-800" v-show="detailVisible">
+        <ImageBlowup :img="selectedImage" v-on:change="imageBlownUp = $event"></ImageBlowup>
         <div class="pt-6 md:p-8 text-center md:text-left space-y-4">
           <blockquote>
             <p class="text-lg font-medium" style="white-space: pre-line;">
@@ -33,14 +33,14 @@
   import {Icon, Style} from 'ol/style.js'
   import Overlay from 'ol/Overlay.js'
   import ImageBlowup from './ImageBlowup.vue'
-
+  import Interaction from 'ol/interaction/Interaction.js';
 
   import 'ol/ol.css'
   import { toStringHDMS } from 'ol/coordinate'
 
   export default {
     name: 'MapContainer',
-    components: {    ImageBlowup},
+    components: {ImageBlowup},
     props: {
       geojson: Object
     },
@@ -53,6 +53,8 @@
       institutionName: "",
       description: "",
       selectedImage: "",
+      mapInFocus: true,
+      imageBlownUp: false,
       // TODO - handle the disable of the click while viewing the detail of the image (and possible all the other map interactions)
       // maybe mose over image, blown up image, or something similar
     }),
@@ -97,23 +99,25 @@
       this.olMap.addOverlay(popup);
 
       this.olMap.on('click', (evt) => {
-        const feature = this.olMap.forEachFeatureAtPixel(evt.pixel, (feature) => feature)
-        this.detailVisible = false
-        if (!feature) {
-          return;
+        if (this.mapInFocus){
+          const feature = this.olMap.forEachFeatureAtPixel(evt.pixel, (feature) => feature)
+          this.detailVisible = false
+          if (!feature) {
+            return;
+          }
+          console.log(feature)
+          console.log(feature.getProperties().image_.value)         
+          this.selectedImage = feature.getProperties().image_.value
+          //this.description = 
+          this.imageName = feature.getProperties().itemLabel.value
+          this.institutionName = feature.getProperties().locationLabel.value
+          this.description = `This painting was created in ${('year_inception') in feature.getProperties() ? feature.getProperties().year_inception_.value : 'unknown'}
+                              it is ${feature.getProperties().materials_.value}
+                              it measures ${feature.getProperties().width_.value}x${feature.getProperties().height_.value} (WxH)
+                              and depicts ${feature.getProperties().depicts_.value}`
+          popup.setPosition(evt.coordinate);
+          this.detailVisible = true; 
         }
-        console.log(feature)
-        console.log(feature.getProperties().image_.value)         
-        this.selectedImage = feature.getProperties().image_.value
-        //this.description = 
-        this.imageName = feature.getProperties().itemLabel.value
-        this.institutionName = feature.getProperties().locationLabel.value
-        this.description = `This painting was created in ${('year_inception') in feature.getProperties() ? feature.getProperties().year_inception_.value : 'unknown'}
-                            it is ${feature.getProperties().materials_.value}
-                            it measures ${feature.getProperties().width_.value}x${feature.getProperties().height_.value} (WxH)
-                            and depicts ${feature.getProperties().depicts_.value}`
-        popup.setPosition(evt.coordinate);
-        this.detailVisible = true;  
       });
 
 
@@ -125,9 +129,17 @@
       },
       selectedFeature(value) {
         this.$emit('select', value)
+      },
+      imageBlownUp(value){
+        this.olMap.getInteractions().forEach(function(interaction) {
+            interaction.setActive(!value);            
+          }, this);
       }
     },
     methods: {
+      hoverDetail (is_mouse_in) {
+        this.mapInFocus = !is_mouse_in
+      },
       updateSource(geojson) {
         const view = this.olMap.getView();
         const source = this.vectorLayer.getSource();        
