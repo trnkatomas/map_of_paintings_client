@@ -13,7 +13,8 @@
     "@heroicons/vue": "^2.0.13",
     "axios": "^1.2.1",
     "ol": "^7.2.2",
-    "vue": "^3.2.45"
+    "vue": "^3.2.45",
+    "vue-easy-lightbox": "^1.11.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",

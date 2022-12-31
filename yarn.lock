@@ -992,6 +992,11 @@ vite@^4.0.3:
   optionalDependencies:
     fsevents "~2.3.2"
 
+vue-easy-lightbox@^1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/vue-easy-lightbox/-/vue-easy-lightbox-1.11.0.tgz#1d448f8641ebd012d094d3b88a5a479555891d48"
+  integrity sha512-t9ouC2rHz/VMt/XSbnVgkED/7Dqe/DHrX6mW4AUj5Kt1PSr3czVk+ecBtF/Q4ivmSdkNJRk2/6D5PGcwxJuozQ==
+
 vue@^3.2.45:
   version "3.2.45"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.2.45.tgz#94a116784447eb7dbd892167784619fef379b3c8"

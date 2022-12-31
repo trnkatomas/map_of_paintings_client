@@ -1,7 +1,25 @@
 <template>
-    <div ref="map-root"
+    <div ref="map-root" class="z-0"
          style="width: 100%; height: 100%; min-width: 600px; min-height: 100px;">
     </div>
+      <figure id="popup" class="md:flex max-w-lg bg-slate-100 rounded-xl p-8 md:p-0 dark:bg-slate-800" v-show="detailVisible">
+        <ImageBlowup :img="selectedImage"></ImageBlowup>
+        <div class="pt-6 md:p-8 text-center md:text-left space-y-4">
+          <blockquote>
+            <p class="text-lg font-medium" style="white-space: pre-line;">
+              {{ description }}
+            </p>
+          </blockquote>
+          <figcaption class="font-medium">
+            <div class="text-sky-500 dark:text-sky-400">
+              {{ imageName }}
+            </div>
+            <div class="text-slate-700 dark:text-slate-500">
+              {{ institutionName }}
+            </div>
+          </figcaption>
+        </div>
+      </figure> 
   </template>
   
 <script>
@@ -12,19 +30,31 @@
   import VectorLayer from 'ol/layer/Vector'
   import VectorSource from 'ol/source/Vector'
   import GeoJSON from 'ol/format/GeoJSON'
+  import {Icon, Style} from 'ol/style.js'
+  import Overlay from 'ol/Overlay.js'
+  import ImageBlowup from './ImageBlowup.vue'
+
 
   import 'ol/ol.css'
+  import { toStringHDMS } from 'ol/coordinate'
 
   export default {
     name: 'MapContainer',
-    components: {},
+    components: {    ImageBlowup},
     props: {
       geojson: Object
     },
     data: () => ({
       olMap: null,
       vectorLayer: null,
-      selectedFeature: null
+      selectedFeature: null,
+      detailVisible: true,
+      imageName: "",
+      institutionName: "",
+      description: "",
+      selectedImage: "",
+      // TODO - handle the disable of the click while viewing the detail of the image (and possible all the other map interactions)
+      // maybe mose over image, blown up image, or something similar
     }),
     mounted() {
       this.vectorLayer = new VectorLayer({
@@ -32,6 +62,7 @@
           features: [],
         }),
       })
+
 
       this.olMap = new Map({
         target: this.$refs['map-root'],
@@ -55,6 +86,37 @@
         }
       })
 
+      // TODO probably replace this by some VUE machism
+      const element = document.getElementById('popup');
+
+      const popup = new Overlay({
+        element: element,
+        positioning: 'bottom-center',
+        stopEvent: false,
+      });
+      this.olMap.addOverlay(popup);
+
+      this.olMap.on('click', (evt) => {
+        const feature = this.olMap.forEachFeatureAtPixel(evt.pixel, (feature) => feature)
+        this.detailVisible = false
+        if (!feature) {
+          return;
+        }
+        console.log(feature)
+        console.log(feature.getProperties().image_.value)         
+        this.selectedImage = feature.getProperties().image_.value
+        //this.description = 
+        this.imageName = feature.getProperties().itemLabel.value
+        this.institutionName = feature.getProperties().locationLabel.value
+        this.description = `This painting was created in ${('year_inception') in feature.getProperties() ? feature.getProperties().year_inception_.value : 'unknown'}
+                            it is ${feature.getProperties().materials_.value}
+                            it measures ${feature.getProperties().width_.value}x${feature.getProperties().height_.value} (WxH)
+                            and depicts ${feature.getProperties().depicts_.value}`
+        popup.setPosition(evt.coordinate);
+        this.detailVisible = true;  
+      });
+
+
       this.updateSource(this.geojson)
     },
     watch: {
@@ -68,15 +130,26 @@
     methods: {
       updateSource(geojson) {
         const view = this.olMap.getView();
-        const source = this.vectorLayer.getSource();
-        console.log(geojson)  
+        const source = this.vectorLayer.getSource();        
         const features = new GeoJSON({
           featureProjection: 'EPSG:3857',
         }).readFeatures(geojson);
+        const iconStyle = new Style({
+                            image: new Icon({
+                              anchor: [0.5, 1],
+                              anchorXUnits: 'fraction',
+                              anchorYUnits: 'fraction',
+                              src: 'src/assets/point-icon.png',
+                            }),
+                          });
 
         source.clear();
+        features.forEach(e => {
+            e.setStyle(function(feature, resolution) {
+              iconStyle.getImage().setScale(1/Math.pow(resolution, 1/3));
+              return iconStyle;
+            })})          
         source.addFeatures(features);
-
         view.fit(source.getExtent())
       }
     }
