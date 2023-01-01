@@ -108,7 +108,6 @@
           console.log(feature)
           console.log(feature.getProperties().image_.value)         
           this.selectedImage = feature.getProperties().image_.value
-          //this.description = 
           this.imageName = feature.getProperties().itemLabel.value
           this.institutionName = feature.getProperties().locationLabel.value
           this.description = `This painting was created in ${('year_inception') in feature.getProperties() ? feature.getProperties().year_inception_.value : 'unknown'}
@@ -151,14 +150,22 @@
                               anchor: [0.5, 1],
                               anchorXUnits: 'fraction',
                               anchorYUnits: 'fraction',
-                              src: 'src/assets/point-icon.png',
+                              scale: 0.1,
+                              src: 'src/assets/map-pin-icon.webp',
                             }),
                           });
 
         source.clear();
-        features.forEach(e => {
+        features.forEach(function(e) {
             e.setStyle(function(feature, resolution) {
-              iconStyle.getImage().setScale(1/Math.pow(resolution, 1/3));
+              //iconStyle.getImage().setScale(1/Math.pow(resolution, 1/2.5));
+              //iconStyle.getImage().setScale(view.getResolutionForZoom(10) / resolution); 
+              if (resolution > 2000) {
+                iconStyle.getImage().setScale(0.05);
+              } else {
+                iconStyle.getImage().setScale(0.1);
+              }
+              console.log(resolution, view.getResolutionForZoom(10))   
               return iconStyle;
             })})          
         source.addFeatures(features);

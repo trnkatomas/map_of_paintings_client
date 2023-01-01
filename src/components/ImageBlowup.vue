@@ -3,14 +3,16 @@
       <img class="w-24 h-24 md:w-48 md:h-auto md:rounded-none rounded-full mx-auto"
           :src="img"
           alt="" width="384" height="512"  @click="showSingle()"> 
+      <Teleport to="body"> 
       <vue-easy-lightbox
-        escDisabled
-        moveDisabled
-        :visible="visible"
+        :visible="visible"        
+        :escDisabled="false"
         :imgs="img"
         :index="index"
         @hide="handleHide"
-      ></vue-easy-lightbox>
+        :zoomScale="0.48"
+      ></vue-easy-lightbox>             
+      </Teleport>
     <!--/div-->
   </template>
   
