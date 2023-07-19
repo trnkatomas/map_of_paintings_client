@@ -151,7 +151,7 @@
                               anchorXUnits: 'fraction',
                               anchorYUnits: 'fraction',
                               scale: 0.1,
-                              src: 'src/assets/map-pin-icon.webp',
+                              src: '/assets/map-pin-icon.webp',
                             }),
                           });
 
